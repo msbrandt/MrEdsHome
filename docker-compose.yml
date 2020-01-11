@@ -1,0 +1,53 @@
+version: "3"
+services:
+  homeassistant:
+    build: 
+      context: ./homeassistant
+    # image: homeassistant/home-assistant:stable
+    # container_name: homeassistant
+    # # user: "1000:1000"
+    # entrypoint:
+    #   - homeassistant
+    #   - --open-ui
+    #   - --config=/data
+    volumes:
+      - ./homeassistant/data:/config
+      #- /etc/localtime:/etc/localtime:ro
+    restart: always 
+    # network_mode: host
+    networks:
+      - flynnet
+    ports:
+      - "8123:8123"
+
+  mosquitto:
+    image: eclipse-mosquitto
+    hostname: mosquitto
+    container_name: mosquitto
+    expose:
+      - "1883"
+      - "9001"
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - flynnet
+
+  nodered:
+    container_name: nodered
+    image: nodered/node-red
+    ports:
+      - "1880:1880"
+    volumes:
+      # Local path where all Node-RED config will be stored.
+      - ./nodered:/data
+    # depends_on:
+    #   - homeassistant
+    networks:
+      - flynnet
+
+networks:
+  flynnet:
+    driver: bridge
